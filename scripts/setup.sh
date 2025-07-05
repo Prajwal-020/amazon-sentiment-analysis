@@ -3,6 +3,12 @@
 # Setup script for Sentiment Analysis Project
 echo "🚀 Setting up Sentiment Analysis Project..."
 
+# Get the project root directory (parent of scripts directory)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
+echo "📁 Project root: $PROJECT_ROOT"
+
 # Check if Python 3.11+ is available
 python_version=$(python3 --version 2>&1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
 if [[ $(echo "$python_version >= 3.9" | bc -l) -eq 0 ]]; then
@@ -26,13 +32,16 @@ pip install --upgrade pip
 
 # Install requirements
 echo "📚 Installing Python dependencies..."
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 
 echo "✅ Backend setup complete!"
 echo ""
 echo "To run the backend:"
 echo "1. source venv/bin/activate"
-echo "2. python app.py"
+echo "2. cd backend && python app.py"
 echo ""
-echo "The API will be available at: http://localhost:8000"
-echo "API documentation: http://localhost:8000/docs"
+echo "Or use the run script:"
+echo "  ./scripts/run-full-stack.sh"
+echo ""
+echo "The API will be available at: http://localhost:8001"
+echo "API documentation: http://localhost:8001/docs"

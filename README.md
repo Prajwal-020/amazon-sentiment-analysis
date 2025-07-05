@@ -50,45 +50,45 @@ This project creates a lightweight backend service that:
 - Node.js 18+
 - npm or yarn
 
-### ⚡ One-Command Startup (Recommended)
-
-**Start both backend and frontend with a single command:**
+### Automated Setup (Recommended)
 
 ```bash
-# Make script executable and run
-chmod +x run-full-stack.sh
-./run-full-stack.sh
+# 1. Clone the repository
+git clone <repository-url>
+cd sentiment_analysis
+
+# 2. Setup backend
+./scripts/setup.sh
+
+# 3. Setup frontend (if needed)
+./scripts/setup-frontend.sh
+
+# 4. Run the full application
+./scripts/run-full-stack.sh
 ```
 
-This will automatically:
-- ✅ Set up backend virtual environment
-- ✅ Install all dependencies
-- ✅ Start backend API on `http://localhost:8001`
-- ✅ Start frontend dashboard on `http://localhost:3000`
-- ✅ Monitor both services
+The application will be available at:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8001
+- **API Documentation**: http://localhost:8001/docs
 
-**Stop the application:**
-```bash
-./stop-services.sh
-```
-
-### 📖 Manual Setup (Alternative)
-
-If you prefer to set up services individually:
-
+### Manual Setup
 #### Backend Setup
 ```bash
-chmod +x setup.sh
-./setup.sh
-source venv/bin/activate
+# Create virtual environment and install dependencies
+rm -rf venv && python3 -m venv venv
+source venv/bin/activate && pip install --upgrade pip && pip install -r backend/requirements.txt
+
+# Run the API server
+cd backend
 python app.py
 ```
 
 #### Frontend Setup
 ```bash
-chmod +x setup-frontend.sh
-./setup-frontend.sh
+# Install dependencies and run development server
 cd frontend
+npm install
 npm run dev
 ```
 
@@ -97,7 +97,30 @@ npm run dev
 - **Backend API**: http://localhost:8001
 - **API Documentation**: http://localhost:8001/docs
 
-📚 **For detailed instructions, troubleshooting, and advanced options, see [RUNNING_THE_APP.md](RUNNING_THE_APP.md)**
+### 🛑 Stopping Services
+
+```bash
+# Stop all services
+./scripts/stop-services.sh
+
+# Stop with log cleanup
+./scripts/stop-services.sh --clean-logs
+```
+
+## 📁 Project Structure
+
+```
+sentiment_analysis/
+├── backend/                 # FastAPI backend
+├── frontend/                # Next.js frontend
+├── scripts/                 # Automation scripts
+├── tests/                   # Test files
+├── docs/                    # Documentation
+├── logs/                    # Application logs
+└── data/                    # Data files
+```
+
+📚 **For detailed instructions, troubleshooting, and advanced options, see [docs/RUNNING_THE_APP.md](docs/RUNNING_THE_APP.md)**
 
 ## 📚 API Documentation
 

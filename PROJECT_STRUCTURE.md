@@ -1,215 +1,158 @@
-# 📁 Project Structure
+# Project Structure
 
-## Overview
+This document outlines the organized structure of the Sentiment Analysis project.
+
+## Directory Structure
+
 ```
 sentiment_analysis/
-├── 📄 README.md                    # Main project documentation
-├── 📄 PROJECT_STRUCTURE.md         # This file
-├── 📄 requirements.txt             # Python dependencies
-├── 📄 app.py                      # Main FastAPI application
-├── 📄 test_api.py                 # API testing script
-├── 📄 setup.sh                    # Backend setup script
-├── 📄 setup-frontend.sh           # Frontend setup script
-├── 📄 Dockerfile                  # Docker configuration
-├── 📄 docker-compose.yml          # Multi-container setup
-├── 📁 venv/                       # Python virtual environment
-└── 📁 frontend/                   # Next.js frontend application
-    ├── 📄 package.json            # Node.js dependencies
-    ├── 📄 next.config.js           # Next.js configuration
-    ├── 📄 tailwind.config.js       # Tailwind CSS config
-    ├── 📄 components.json          # shadcn/ui config
-    ├── 📁 src/
-    │   ├── 📁 app/
-    │   │   ├── 📄 layout.tsx       # Root layout
-    │   │   ├── 📄 page.tsx         # Home page
-    │   │   └── 📄 globals.css      # Global styles
-    │   └── 📁 components/
-    │       ├── 📄 SentimentDashboard.tsx  # Main dashboard
-    │       └── 📁 ui/              # shadcn/ui components
-    └── 📁 public/                  # Static assets
+├── README.md                    # Main project documentation
+├── promptDoc.md                 # AI prompt documentation
+├── .gitignore                   # Root-level gitignore (Python/backend)
+├── Dockerfile                   # Docker configuration
+├── docker-compose.yml           # Docker Compose configuration
+├── venv/                        # Python virtual environment
+│
+├── backend/                     # Backend API (FastAPI + Python)
+│   ├── app.py                   # Main FastAPI application
+│   └── requirements.txt         # Python dependencies
+│
+├── frontend/                    # Frontend application (Next.js + TypeScript)
+│   ├── .gitignore              # Frontend-specific gitignore
+│   ├── package.json            # Node.js dependencies
+│   ├── package-lock.json       # Locked dependency versions
+│   ├── next.config.ts          # Next.js configuration
+│   ├── tsconfig.json           # TypeScript configuration
+│   ├── tailwind.config.ts      # Tailwind CSS configuration
+│   ├── components.json         # shadcn/ui configuration
+│   ├── src/                    # Source code
+│   │   ├── app/                # Next.js app directory
+│   │   ├── components/         # React components
+│   │   └── lib/                # Utility libraries
+│   ├── public/                 # Static assets
+│   └── node_modules/           # Node.js dependencies (ignored)
+│
+├── scripts/                     # Automation scripts
+│   ├── setup.sh               # Backend setup script
+│   ├── setup-frontend.sh      # Frontend setup script
+│   ├── run-full-stack.sh      # Start both services
+│   └── stop-services.sh       # Stop all services
+│
+├── tests/                       # Test files and utilities
+│   ├── test_api.py             # API testing script
+│   └── debug_scraper.py        # Amazon scraper debugging tool
+│
+├── docs/                        # Documentation
+│   ├── DEPLOYMENT.md           # Deployment instructions
+│   ├── RUNNING_THE_APP.md      # How to run the application
+│   ├── PROJECT_SUMMARY.md      # Project overview
+│   ├── QUICK_REFERENCE.md      # Quick reference guide
+│   ├── REAL_DATA_SUCCESS.md    # Real data implementation notes
+│   └── FRONTEND_ROUTES_FIX.md  # Frontend routing fixes
+│
+├── logs/                        # Application logs
+│   ├── backend.log             # Backend service logs
+│   └── frontend.log            # Frontend service logs
+│
+└── data/                        # Data files and debug outputs
+    ├── phone_links.json        # Scraped phone data
+    └── amazon_debug.html       # Debug HTML output
 ```
 
-## 🔧 Backend Files
+## Key Components
 
-### Core Application
-- **`app.py`** - Main FastAPI application with all endpoints and logic
-- **`requirements.txt`** - Python package dependencies
-- **`test_api.py`** - Comprehensive API testing suite
+### Backend (`/backend/`)
+- **FastAPI application** with sentiment analysis capabilities
+- **Amazon scraping** for smartphone data
+- **Sentiment analysis** using Hugging Face transformers
+- **RESTful API** endpoints for data retrieval
 
-### Setup & Deployment
-- **`setup.sh`** - Automated backend environment setup
-- **`Dockerfile`** - Container configuration for backend
-- **`docker-compose.yml`** - Multi-service orchestration
+### Frontend (`/frontend/`)
+- **Next.js 14** with App Router
+- **TypeScript** for type safety
+- **Tailwind CSS** for styling
+- **shadcn/ui** component library
+- **Responsive design** for mobile and desktop
 
-### Key Components in app.py
+### Scripts (`/scripts/`)
+- **Automated setup** for both backend and frontend
+- **Service management** (start/stop)
+- **Cross-platform compatibility** (macOS, Linux)
 
-#### Classes
-- **`AmazonScraper`** - Web scraping functionality
-- **`SmartphoneData`** - Pydantic data model
-- **`RefreshResponse`** - API response model
+### Tests (`/tests/`)
+- **API testing** with comprehensive endpoint coverage
+- **Debug utilities** for troubleshooting scrapers
+- **Performance monitoring** and validation
 
-#### Functions
-- **`initialize_sentiment_pipeline()`** - Load AI model
-- **`clean_text()`** - Text preprocessing
-- **`analyze_sentiment_batch()`** - Batch sentiment analysis
-- **`calculate_composite_score()`** - Scoring algorithm
-- **`process_smartphones_data()`** - Main data processing
-- **`get_mock_smartphone_data()`** - Fallback demo data
+## Usage
 
-#### API Endpoints
-- **`GET /`** - API information
-- **`GET /health`** - Health check
-- **`GET /top-mobiles`** - Main data endpoint
-- **`POST /refresh`** - Cache refresh
-- **`GET /docs`** - Auto-generated API docs
+### Quick Start
+```bash
+# Setup backend
+./scripts/setup.sh
 
-## 🎨 Frontend Files
+# Setup frontend (if needed)
+./scripts/setup-frontend.sh
 
-### Core Application
-- **`src/app/page.tsx`** - Main page component
-- **`src/app/layout.tsx`** - Root layout with metadata
-- **`src/app/globals.css`** - Global styles and Tailwind imports
+# Run full application
+./scripts/run-full-stack.sh
 
-### Components
-- **`src/components/SentimentDashboard.tsx`** - Main dashboard component
-- **`src/components/ui/`** - shadcn/ui component library
-
-### Configuration
-- **`package.json`** - Dependencies and scripts
-- **`next.config.js`** - Next.js configuration
-- **`tailwind.config.js`** - Tailwind CSS customization
-- **`components.json`** - shadcn/ui component configuration
-
-### Key Features in SentimentDashboard.tsx
-
-#### State Management
-- **Data fetching** with error handling
-- **Loading states** with skeleton components
-- **Real-time refresh** functionality
-
-#### UI Components
-- **Header section** with title and refresh button
-- **Stats overview** with key metrics
-- **Tabbed interface** (Rankings, Analytics, Insights)
-- **Interactive charts** using Recharts
-- **Responsive cards** for smartphone data
-
-#### Data Visualization
-- **Bar charts** for sentiment comparison
-- **Pie charts** for score distribution
-- **Progress bars** for individual metrics
-- **Color-coded badges** for sentiment levels
-
-## 🔄 Data Flow
-
-### 1. Backend Data Processing
-```
-Amazon Scraping → Review Collection → Sentiment Analysis → Composite Scoring → API Response
+# Stop all services
+./scripts/stop-services.sh
 ```
 
-### 2. Frontend Data Consumption
+### Manual Setup
+```bash
+# Backend
+cd backend
+python -m venv ../venv
+source ../venv/bin/activate
+pip install -r requirements.txt
+python app.py
+
+# Frontend
+cd frontend
+npm install
+npm run dev
 ```
-API Fetch → State Update → Component Render → Chart Generation → User Interaction
-```
 
-### 3. Real-time Updates
-```
-User Refresh → Backend Cache Clear → Fresh Scraping → New Analysis → Updated UI
-```
+## Services
 
-## 🛠️ Development Workflow
+| Service | Port | URL | Description |
+|---------|------|-----|-------------|
+| Backend API | 8001 | http://localhost:8001 | FastAPI server |
+| API Docs | 8001 | http://localhost:8001/docs | Swagger documentation |
+| Frontend | 3000 | http://localhost:3000 | Next.js application |
 
-### Backend Development
-1. **Environment Setup**: Run `./setup.sh`
-2. **Development**: Edit `app.py`
-3. **Testing**: Run `python test_api.py`
-4. **Debugging**: Check logs in terminal
+## Environment Variables
 
-### Frontend Development
-1. **Environment Setup**: Run `./setup-frontend.sh`
-2. **Development**: Edit components in `src/`
-3. **Testing**: View at `http://localhost:3000`
-4. **Styling**: Modify Tailwind classes
+### Backend
+- `PORT`: API server port (default: 8001)
+- `HOST`: API server host (default: 0.0.0.0)
 
-### Full Stack Testing
-1. **Start Backend**: `python app.py`
-2. **Start Frontend**: `npm run dev`
-3. **Test Integration**: Verify data flow
-4. **Performance Check**: Monitor response times
+### Frontend
+- `NEXT_PUBLIC_API_URL`: Backend API URL (default: http://localhost:8001)
 
-## 📦 Dependencies
+## Development Workflow
 
-### Backend Dependencies (requirements.txt)
-- **fastapi** - Web framework
-- **uvicorn** - ASGI server
-- **transformers** - AI/ML models
-- **torch** - PyTorch for model inference
-- **beautifulsoup4** - Web scraping
-- **requests** - HTTP client
-- **pydantic** - Data validation
-- **cachetools** - In-memory caching
+1. **Setup**: Run setup scripts for initial configuration
+2. **Development**: Use individual service commands or full-stack script
+3. **Testing**: Run test scripts to validate functionality
+4. **Debugging**: Check logs in `/logs/` directory
+5. **Deployment**: Follow deployment documentation
 
-### Frontend Dependencies (package.json)
-- **next** - React framework
-- **react** - UI library
-- **typescript** - Type safety
-- **tailwindcss** - CSS framework
-- **@radix-ui** - Primitive components
-- **recharts** - Data visualization
-- **lucide-react** - Icon library
+## File Naming Conventions
 
-## 🔧 Configuration Files
+- **Scripts**: kebab-case with `.sh` extension
+- **Documentation**: UPPERCASE with `.md` extension
+- **Code files**: Follow language conventions (camelCase for JS/TS, snake_case for Python)
+- **Directories**: lowercase with hyphens for multi-word names
 
-### Backend Configuration
-- **CORS settings** in `app.py`
-- **Cache configuration** (TTL, size)
-- **Model settings** (DistilBERT)
-- **Scraping parameters** (timeouts, limits)
+## Git Workflow
 
-### Frontend Configuration
-- **API endpoints** in components
-- **Styling themes** in Tailwind config
-- **Component variants** in shadcn config
-- **Build settings** in Next.js config
+- **Root `.gitignore`**: Handles Python, virtual environments, logs, OS files
+- **Frontend `.gitignore`**: Handles Node.js, Next.js, build artifacts
+- **Organized commits**: Use conventional commit messages
+- **Branch naming**: feature/, bugfix/, hotfix/ prefixes
 
-## 🚀 Deployment Structure
-
-### Docker Deployment
-- **Backend container** from Dockerfile
-- **Frontend container** (separate build)
-- **Multi-container** via docker-compose
-
-### Cloud Deployment
-- **Backend**: API service (Railway, Render)
-- **Frontend**: Static hosting (Vercel, Netlify)
-- **Database**: Optional (PostgreSQL, MongoDB)
-
-## 📊 Performance Considerations
-
-### Backend Optimization
-- **Async processing** for concurrent requests
-- **Smart caching** to reduce API calls
-- **Error handling** with graceful fallbacks
-- **Rate limiting** for responsible scraping
-
-### Frontend Optimization
-- **Code splitting** with Next.js
-- **Image optimization** for assets
-- **Lazy loading** for charts
-- **Responsive design** for mobile
-
-## 🔍 Monitoring & Debugging
-
-### Backend Monitoring
-- **Health endpoint** for status checks
-- **Logging** throughout the application
-- **Error tracking** with detailed messages
-- **Performance metrics** in responses
-
-### Frontend Monitoring
-- **Console logging** for debugging
-- **Error boundaries** for crash handling
-- **Loading states** for user feedback
-- **Network monitoring** for API calls
-
-This structure provides a comprehensive foundation for a production-ready sentiment analysis application with modern development practices and scalable architecture.
+This structure provides clear separation of concerns, easy maintenance, and scalable development workflow.

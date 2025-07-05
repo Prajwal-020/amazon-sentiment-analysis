@@ -5,6 +5,10 @@
 
 set -e  # Exit on any error
 
+# Get the project root directory (parent of scripts directory)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -87,22 +91,22 @@ setup_backend() {
     # Check if virtual environment exists
     if [ ! -d "venv" ]; then
         print_status "Virtual environment not found. Running setup..."
-        if [ -f "setup.sh" ]; then
-            chmod +x setup.sh
-            ./setup.sh
+        if [ -f "scripts/setup.sh" ]; then
+            chmod +x scripts/setup.sh
+            ./scripts/setup.sh
         else
-            print_error "setup.sh not found. Please run backend setup manually."
+            print_error "scripts/setup.sh not found. Please run backend setup manually."
             exit 1
         fi
     else
         print_success "Virtual environment found"
     fi
-    
+
     # Check if requirements are installed
     if ! source venv/bin/activate && python -c "import fastapi, transformers" 2>/dev/null; then
         print_status "Installing/updating requirements..."
         source venv/bin/activate
-        pip install -r requirements.txt
+        pip install -r backend/requirements.txt
     fi
     
     print_success "Backend setup complete"
@@ -114,11 +118,11 @@ setup_frontend() {
     
     if [ ! -d "frontend" ]; then
         print_status "Frontend directory not found. Running setup..."
-        if [ -f "setup-frontend.sh" ]; then
-            chmod +x setup-frontend.sh
-            ./setup-frontend.sh
+        if [ -f "scripts/setup-frontend.sh" ]; then
+            chmod +x scripts/setup-frontend.sh
+            ./scripts/setup-frontend.sh
         else
-            print_error "setup-frontend.sh not found. Please run frontend setup manually."
+            print_error "scripts/setup-frontend.sh not found. Please run frontend setup manually."
             exit 1
         fi
     else
@@ -148,17 +152,19 @@ start_backend() {
     # Start backend in background
     print_status "Starting FastAPI server on http://localhost:8001"
     source venv/bin/activate
-    nohup python app.py > backend.log 2>&1 &
+    cd backend
+    nohup python app.py > ../logs/backend.log 2>&1 &
     BACKEND_PID=$!
-    echo $BACKEND_PID > backend.pid
+    echo $BACKEND_PID > ../backend.pid
+    cd ..
     
     # Wait for backend to be ready
     if wait_for_service "http://localhost:8001/health" "Backend API"; then
         print_success "Backend server started successfully (PID: $BACKEND_PID)"
-        print_status "Backend logs: tail -f backend.log"
+        print_status "Backend logs: tail -f logs/backend.log"
         print_status "API Documentation: http://localhost:8001/docs"
     else
-        print_error "Backend failed to start. Check backend.log for details."
+        print_error "Backend failed to start. Check logs/backend.log for details."
         exit 1
     fi
 }
@@ -175,7 +181,7 @@ start_frontend() {
     # Start frontend in background
     print_status "Starting Next.js server on http://localhost:3000"
     cd frontend
-    nohup npm run dev > ../frontend.log 2>&1 &
+    nohup npm run dev > ../logs/frontend.log 2>&1 &
     FRONTEND_PID=$!
     echo $FRONTEND_PID > ../frontend.pid
     cd ..
@@ -183,9 +189,9 @@ start_frontend() {
     # Wait for frontend to be ready
     if wait_for_service "http://localhost:3000" "Frontend App"; then
         print_success "Frontend server started successfully (PID: $FRONTEND_PID)"
-        print_status "Frontend logs: tail -f frontend.log"
+        print_status "Frontend logs: tail -f logs/frontend.log"
     else
-        print_error "Frontend failed to start. Check frontend.log for details."
+        print_error "Frontend failed to start. Check logs/frontend.log for details."
         exit 1
     fi
 }
@@ -213,11 +219,11 @@ show_status() {
     
     echo ""
     print_status "📝 Log files:"
-    print_status "   Backend: backend.log"
-    print_status "   Frontend: frontend.log"
-    
+    print_status "   Backend: logs/backend.log"
+    print_status "   Frontend: logs/frontend.log"
+
     echo ""
-    print_status "🛑 To stop services: ./stop-services.sh"
+    print_status "🛑 To stop services: ./scripts/stop-services.sh"
 }
 
 # Function to cleanup on exit

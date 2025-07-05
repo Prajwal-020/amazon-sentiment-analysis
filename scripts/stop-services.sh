@@ -3,6 +3,10 @@
 # Stop Full-Stack Sentiment Analysis Application
 # This script stops both backend and frontend services
 
+# Get the project root directory (parent of scripts directory)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -111,7 +115,7 @@ stop_by_pid() {
 cleanup_logs() {
     if [ "$1" = "--clean-logs" ]; then
         print_status "Cleaning up log files..."
-        rm -f backend.log frontend.log
+        rm -f logs/backend.log logs/frontend.log
         print_success "Log files cleaned"
     else
         print_status "Log files preserved (use --clean-logs to remove them)"
@@ -138,7 +142,7 @@ main() {
     
     echo ""
     print_header "✅ All services stopped"
-    print_status "To start again: ./run-full-stack.sh"
+    print_status "To start again: ./scripts/run-full-stack.sh"
 }
 
 # Show usage if help requested

@@ -191,9 +191,9 @@ $RECYCLE.BIN/
 *~
 
 # Project specific
-*.log
-debug_*.html
-phone_links.json
+logs/
+data/
+*.pid
 
 # Docker
 .dockerignore
@@ -204,6 +204,6 @@ phone_links.json
 *.old
 
 # Data files (if you want to ignore scraped data)
-# *.json
-# *.csv
-# *.xlsx
+# data/*.json
+# data/*.csv
+# data/*.xlsx

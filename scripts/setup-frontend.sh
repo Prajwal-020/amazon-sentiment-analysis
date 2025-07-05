@@ -3,6 +3,10 @@
 # Setup script for Next.js Frontend
 echo "🚀 Setting up Next.js Frontend with shadcn/ui..."
 
+# Get the project root directory (parent of scripts directory)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 # Check if Node.js is available
 if ! command -v node &> /dev/null; then
     echo "❌ Node.js is required but not installed. Please install Node.js first."

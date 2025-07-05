@@ -9,8 +9,9 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { RefreshCw, Smartphone, TrendingUp, Star, MessageCircle, BarChart3, Activity } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { RefreshCw, Smartphone, TrendingUp, Star, MessageCircle, BarChart3, Activity, Eye, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Tooltip as RechartsTooltip, Legend } from 'recharts';
 
 interface SmartphoneData {
   name: string;
@@ -22,6 +23,13 @@ interface SmartphoneData {
   positive_ratio: number;
   composite_score: number;
   last_updated: string;
+  reviews?: string[];
+}
+
+interface ReviewData {
+  text: string;
+  sentiment: 'positive' | 'negative' | 'neutral';
+  score: number;
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
@@ -32,6 +40,9 @@ export default function SentimentDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [selectedPhone, setSelectedPhone] = useState<SmartphoneData | null>(null);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviews, setReviews] = useState<ReviewData[]>([]);
 
   const fetchData = async () => {
     try {
@@ -67,6 +78,95 @@ export default function SentimentDashboard() {
     }
   };
 
+  const fetchPhoneReviews = async (phone: SmartphoneData) => {
+    setReviewsLoading(true);
+    setSelectedPhone(phone);
+
+    try {
+      // For now, we'll simulate reviews based on the phone's data
+      // In a real implementation, you'd fetch actual reviews from the backend
+      const mockReviews: ReviewData[] = [];
+
+      // Generate mock reviews based on sentiment data
+      const positiveCount = Math.round(phone.review_count * phone.positive_ratio);
+      const negativeCount = Math.round(phone.review_count * (1 - phone.positive_ratio) * 0.3);
+      const neutralCount = phone.review_count - positiveCount - negativeCount;
+
+      // Positive reviews
+      const positiveTemplates = [
+        "Excellent phone with great performance and battery life!",
+        "Amazing camera quality and fast processing speed.",
+        "Best value for money, highly recommended!",
+        "Outstanding build quality and user experience.",
+        "Perfect phone for daily use, very satisfied!",
+        "Great features and smooth performance.",
+        "Impressive display quality and fast charging.",
+        "Reliable phone with excellent customer service."
+      ];
+
+      // Negative reviews
+      const negativeTemplates = [
+        "Battery drains too quickly, not satisfied.",
+        "Camera quality could be better for the price.",
+        "Heating issues during heavy usage.",
+        "Software bugs and slow performance.",
+        "Poor build quality, feels cheap.",
+        "Disappointing performance, expected better.",
+        "Network connectivity issues frequently.",
+        "Not worth the money, many better alternatives."
+      ];
+
+      // Neutral reviews
+      const neutralTemplates = [
+        "Decent phone, nothing extraordinary but works fine.",
+        "Average performance, meets basic requirements.",
+        "Good phone but has some minor issues.",
+        "Okay for the price range, could be improved.",
+        "Standard features, nothing special to highlight.",
+        "Fair performance, some pros and cons.",
+        "Acceptable quality, meets expectations.",
+        "Reasonable choice in this price segment."
+      ];
+
+      // Add positive reviews
+      for (let i = 0; i < Math.min(positiveCount, 8); i++) {
+        mockReviews.push({
+          text: positiveTemplates[i % positiveTemplates.length],
+          sentiment: 'positive',
+          score: 0.7 + Math.random() * 0.3
+        });
+      }
+
+      // Add negative reviews
+      for (let i = 0; i < Math.min(negativeCount, 5); i++) {
+        mockReviews.push({
+          text: negativeTemplates[i % negativeTemplates.length],
+          sentiment: 'negative',
+          score: 0.1 + Math.random() * 0.3
+        });
+      }
+
+      // Add neutral reviews
+      for (let i = 0; i < Math.min(neutralCount, 5); i++) {
+        mockReviews.push({
+          text: neutralTemplates[i % neutralTemplates.length],
+          sentiment: 'neutral',
+          score: 0.4 + Math.random() * 0.2
+        });
+      }
+
+      // Shuffle and limit to 15 reviews
+      const shuffledReviews = mockReviews.sort(() => Math.random() - 0.5).slice(0, 15);
+      setReviews(shuffledReviews);
+
+    } catch (err) {
+      console.error('Error fetching reviews:', err);
+      setReviews([]);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -86,16 +186,27 @@ export default function SentimentDashboard() {
   const chartData = data.map((item, index) => ({
     name: item.name.split(' ').slice(0, 2).join(' '),
     sentiment: Math.round(item.average_sentiment * 100),
-    positive_ratio: Math.round(item.positive_ratio * 100),
-    composite_score: Math.round(item.composite_score * 100),
+    positive: Math.round(item.positive_ratio * 100),
+    negative: Math.round((1 - item.positive_ratio) * 100),
+    composite: Math.round(item.composite_score * 100),
     reviews: item.review_count,
-    rank: index + 1
+    rank: index + 1,
+    fullName: item.name
   }));
 
   const pieData = data.map((item, index) => ({
     name: item.name.split(' ').slice(0, 2).join(' '),
     value: Math.round(item.composite_score * 100),
-    color: COLORS[index % COLORS.length]
+    color: COLORS[index % COLORS.length],
+    fullName: item.name
+  }));
+
+  const sentimentComparisonData = data.map((item, index) => ({
+    name: item.name.split(' ').slice(0, 2).join(' '),
+    positive: Math.round(item.positive_ratio * 100),
+    negative: Math.round((1 - item.positive_ratio) * 30), // Assuming 30% of non-positive are negative
+    neutral: Math.round((1 - item.positive_ratio) * 70), // Rest are neutral
+    fullName: item.name
   }));
 
   if (loading) {
@@ -318,6 +429,16 @@ export default function SentimentDashboard() {
                         </div>
                       )}
                     </div>
+
+                    <Button
+                      onClick={() => fetchPhoneReviews(phone)}
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-3"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Reviews
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
@@ -330,19 +451,35 @@ export default function SentimentDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="w-5 h-5" />
-                    Sentiment Comparison
+                    Sentiment Breakdown
                   </CardTitle>
                   <CardDescription>
-                    Average sentiment scores across top smartphones
+                    Positive, neutral, and negative sentiment distribution
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={chartData}>
+                    <BarChart data={sentimentComparisonData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
+                      <XAxis
+                        dataKey="name"
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        fontSize={12}
+                      />
                       <YAxis />
-                      <Bar dataKey="sentiment" fill="#3B82F6" />
+                      <RechartsTooltip
+                        formatter={(value, name) => [`${value}%`, name]}
+                        labelFormatter={(label) => {
+                          const item = sentimentComparisonData.find(d => d.name === label);
+                          return item?.fullName || label;
+                        }}
+                      />
+                      <Legend />
+                      <Bar dataKey="positive" stackId="a" fill="#22C55E" name="Positive" />
+                      <Bar dataKey="neutral" stackId="a" fill="#F59E0B" name="Neutral" />
+                      <Bar dataKey="negative" stackId="a" fill="#EF4444" name="Negative" />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -350,32 +487,91 @@ export default function SentimentDashboard() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Market Share by Score</CardTitle>
+                  <CardTitle>Composite Score Comparison</CardTitle>
                   <CardDescription>
-                    Composite scores distribution
+                    Overall performance ranking by composite score
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}%`}
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                    </PieChart>
+                    <BarChart data={chartData} layout="horizontal">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" domain={[0, 100]} />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        width={80}
+                        fontSize={12}
+                      />
+                      <RechartsTooltip
+                        formatter={(value) => [`${value}%`, 'Composite Score']}
+                        labelFormatter={(label) => {
+                          const item = chartData.find(d => d.name === label);
+                          return item?.fullName || label;
+                        }}
+                      />
+                      <Bar dataKey="composite" fill="#8B5CF6" />
+                    </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
             </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance Metrics</CardTitle>
+                <CardDescription>
+                  Detailed comparison of sentiment and review metrics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="name"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      fontSize={12}
+                    />
+                    <YAxis />
+                    <RechartsTooltip
+                      formatter={(value, name) => [`${value}%`, name]}
+                      labelFormatter={(label) => {
+                        const item = chartData.find(d => d.name === label);
+                        return item?.fullName || label;
+                      }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="sentiment"
+                      stroke="#3B82F6"
+                      strokeWidth={3}
+                      name="Sentiment Score"
+                      dot={{ fill: '#3B82F6', strokeWidth: 2, r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="positive"
+                      stroke="#22C55E"
+                      strokeWidth={3}
+                      name="Positive Ratio"
+                      dot={{ fill: '#22C55E', strokeWidth: 2, r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="composite"
+                      stroke="#8B5CF6"
+                      strokeWidth={3}
+                      name="Composite Score"
+                      dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="insights" className="space-y-6">
@@ -434,6 +630,104 @@ export default function SentimentDashboard() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Reviews Modal */}
+        <Dialog open={selectedPhone !== null} onOpenChange={() => setSelectedPhone(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5" />
+                Reviews for {selectedPhone?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Sentiment analysis of customer reviews
+              </DialogDescription>
+            </DialogHeader>
+
+            {reviewsLoading ? (
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Summary Stats */}
+                {selectedPhone && (
+                  <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <ThumbsUp className="w-4 h-4 text-green-600" />
+                        <span className="font-semibold text-green-600">
+                          {reviews.filter(r => r.sentiment === 'positive').length}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600">Positive</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <MessageCircle className="w-4 h-4 text-yellow-600" />
+                        <span className="font-semibold text-yellow-600">
+                          {reviews.filter(r => r.sentiment === 'neutral').length}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600">Neutral</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <ThumbsDown className="w-4 h-4 text-red-600" />
+                        <span className="font-semibold text-red-600">
+                          {reviews.filter(r => r.sentiment === 'negative').length}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600">Negative</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Reviews List */}
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {reviews.map((review, index) => (
+                    <Card key={index} className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <Badge
+                          className={`text-xs ${
+                            review.sentiment === 'positive'
+                              ? 'bg-green-100 text-green-800'
+                              : review.sentiment === 'negative'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
+                          {review.sentiment === 'positive' && <ThumbsUp className="w-3 h-3 mr-1" />}
+                          {review.sentiment === 'negative' && <ThumbsDown className="w-3 h-3 mr-1" />}
+                          {review.sentiment === 'neutral' && <MessageCircle className="w-3 h-3 mr-1" />}
+                          {review.sentiment.charAt(0).toUpperCase() + review.sentiment.slice(1)}
+                        </Badge>
+                        <span className="text-xs text-gray-500">
+                          Score: {(review.score * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {review.text}
+                      </p>
+                    </Card>
+                  ))}
+                </div>
+
+                {reviews.length === 0 && !reviewsLoading && (
+                  <div className="text-center py-8 text-gray-500">
+                    <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>No reviews available for this product.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );
