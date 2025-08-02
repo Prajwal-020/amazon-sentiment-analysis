@@ -1,0 +1,24 @@
+services:
+  # Backend API Service
+  - type: web
+    name: sentiment-analysis-api
+    env: python
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: PORT
+        value: 8001
+
+  # Frontend Service
+  - type: web
+    name: sentiment-analysis-frontend
+    env: node
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://sentiment-analysis-api.onrender.com
