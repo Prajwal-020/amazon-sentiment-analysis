@@ -45,7 +45,7 @@ export default function SentimentDashboard() {
   const fetchData = async () => {
     try {
       setError(null);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/top-mobiles`);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/top-mobiles`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

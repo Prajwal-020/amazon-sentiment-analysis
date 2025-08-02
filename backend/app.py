@@ -38,7 +38,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://sentiment-analysis-frontend.onrender.com"
+        "https://amazon-sentiment-frontend.onrender.com",
+        "https://amazon-sentiment-api.onrender.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],
