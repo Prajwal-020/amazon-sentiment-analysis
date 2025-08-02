@@ -48,6 +48,13 @@ app.add_middleware(
 
 # Global variables
 sentiment_pipeline = None
+
+@app.on_event("startup")
+async def startup_event():
+    global sentiment_pipeline
+    logger.info("Loading sentiment analysis model...")
+    sentiment_pipeline = pipeline("sentiment-analysis")
+    logger.info("Model loaded successfully!")
 cache = TTLCache(maxsize=100, ttl=3600)  # 1 hour TTL
 
 # Data storage configuration

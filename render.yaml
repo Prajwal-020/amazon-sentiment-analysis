@@ -3,8 +3,8 @@ services:
   - type: web
     name: sentiment-analysis-api
     env: python
-    buildCommand: cd backend && pip install -r requirements.txt
-    startCommand: cd backend && gunicorn app:app --bind 0.0.0.0:$PORT
+    buildCommand: cd backend && pip install gunicorn && pip install -r requirements.txt
+    startCommand: cd backend && gunicorn app:app --bind 0.0.0.0:$PORT --worker-class uvicorn.workers.UvicornWorker --workers 1 --timeout 180 --graceful-timeout 180 --keep-alive 5
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.18
