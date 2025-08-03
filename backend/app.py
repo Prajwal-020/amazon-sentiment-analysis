@@ -106,9 +106,13 @@ async def startup_event():
             MODEL_NAME,
             cache_dir=MODEL_CACHE_DIR,
             local_files_only=False,
-            torch_dtype=torch.float32,
-            low_cpu_mem_usage=True
+            torch_dtype=torch.float32
         )
+        
+        # Free up memory
+        import gc
+        gc.collect()
+        torch.cuda.empty_cache() if torch.cuda.is_available() else None
         
         model = model.to(device)  # Ensure model is on CPU
         
