@@ -734,7 +734,8 @@ async def process_smartphones_data() -> List[SmartphoneData]:
 @app.on_event("startup")
 async def startup_event():
     """Initialize the application"""
-    initialize_sentiment_pipeline()
+    ensure_model_cache_dir()  # Only setup cache dir, don't load model yet
+    logger.info("Application started successfully")
 
 @app.get("/")
 async def root():
@@ -881,10 +882,6 @@ async def storage_status():
     return status
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "app:app",
-        host="0.0.0.0",
-        port=8001,
-        reload=True,
-        log_level="info"
-    )
+    # For local development only
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)  # Use local host for development
