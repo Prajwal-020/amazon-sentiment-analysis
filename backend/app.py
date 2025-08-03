@@ -53,7 +53,16 @@ sentiment_pipeline = None
 async def startup_event():
     global sentiment_pipeline
     logger.info("Loading sentiment analysis model...")
-    sentiment_pipeline = pipeline("sentiment-analysis")
+    # Use a smaller, more efficient model
+    sentiment_pipeline = pipeline(
+        "sentiment-analysis",
+        model="distilbert-base-uncased-finetuned-sst-2-english",
+        framework="pt"
+    )
+    # Clear GPU memory if available
+    import torch
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     logger.info("Model loaded successfully!")
 cache = TTLCache(maxsize=100, ttl=3600)  # 1 hour TTL
 
