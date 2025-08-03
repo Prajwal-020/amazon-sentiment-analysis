@@ -46,24 +46,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global variables
+# Global variables and constants
+MODEL_CACHE_DIR = Path("/opt/render/model_cache")
+MODEL_NAME = "distilbert-base-uncased-finetuned-sst-2-english"
 sentiment_pipeline = None
+
+def ensure_model_cache_dir():
+    """Ensure the model cache directory exists."""
+    if not MODEL_CACHE_DIR.exists():
+        MODEL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    os.environ['TRANSFORMERS_CACHE'] = str(MODEL_CACHE_DIR)
+    logger.info(f"Using model cache directory: {MODEL_CACHE_DIR}")
 
 @app.on_event("startup")
 async def startup_event():
     global sentiment_pipeline
+    ensure_model_cache_dir()
+    
     logger.info("Loading sentiment analysis model...")
-    # Use a smaller, more efficient model
-    sentiment_pipeline = pipeline(
-        "sentiment-analysis",
-        model="distilbert-base-uncased-finetuned-sst-2-english",
-        framework="pt"
-    )
-    # Clear GPU memory if available
-    import torch
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-    logger.info("Model loaded successfully!")
+    try:
+        # Use a smaller, more efficient model with caching
+        sentiment_pipeline = pipeline(
+            "sentiment-analysis",
+            model=MODEL_NAME,
+            framework="pt",
+            cache_dir=MODEL_CACHE_DIR
+        )
+        # Clear GPU memory if available
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        logger.info("Model loaded successfully!")
+    except Exception as e:
+        logger.error(f"Error loading model: {str(e)}")
+        raise
 cache = TTLCache(maxsize=100, ttl=3600)  # 1 hour TTL
 
 # Data storage configuration

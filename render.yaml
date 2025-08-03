@@ -3,8 +3,12 @@ services:
   - type: web
     name: sentiment-analysis-api
     env: python
-    buildCommand: cd backend && pip install gunicorn && pip install -r requirements.txt --no-cache-dir
-    startCommand: cd backend && gunicorn app:app --bind 0.0.0.0:$PORT --worker-class uvicorn.workers.UvicornWorker --workers 1 --timeout 180 --graceful-timeout 180 --keep-alive 5 --max-requests 50 --max-requests-jitter 5
+    buildCommand: cd backend && mkdir -p /opt/render/model_cache && pip install gunicorn && pip install -r requirements.txt --no-cache-dir
+    startCommand: cd backend && gunicorn app:app --bind 0.0.0.0:$PORT --worker-class uvicorn.workers.UvicornWorker --workers 1 --timeout 180 --graceful-timeout 180 --keep-alive 5 --max-requests 50 --max-requests-jitter 5 --preload
+    disk:
+      name: model-cache
+      mountPath: /opt/render/model_cache
+      sizeGB: 1
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.18
