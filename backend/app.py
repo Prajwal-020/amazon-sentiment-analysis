@@ -21,6 +21,7 @@ from bs4 import BeautifulSoup
 from transformers import pipeline
 from cachetools import TTLCache
 import uvicorn
+import torch
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -88,23 +89,35 @@ async def startup_event():
     logger.info("Loading sentiment analysis model...")
     try:
         from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
+        import torch
+
+        # Configure PyTorch for CPU usage
+        device = torch.device("cpu")
+        torch.set_num_threads(4)  # Limit CPU threads
         
         # Load model components separately to better manage memory
-        tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, cache_dir=MODEL_CACHE_DIR)
+        tokenizer = AutoTokenizer.from_pretrained(
+            MODEL_NAME,
+            cache_dir=MODEL_CACHE_DIR,
+            local_files_only=False
+        )
+        
         model = AutoModelForSequenceClassification.from_pretrained(
             MODEL_NAME,
             cache_dir=MODEL_CACHE_DIR,
+            local_files_only=False,
             torch_dtype=torch.float32,
             low_cpu_mem_usage=True
         )
+        
+        model = model.to(device)  # Ensure model is on CPU
         
         # Create pipeline with memory-optimized settings
         sentiment_pipeline = pipeline(
             "sentiment-analysis",
             model=model,
             tokenizer=tokenizer,
-            framework="pt",
-            device=-1  # Force CPU
+            device=device
         )
         
         cleanup_memory()
