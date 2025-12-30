@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import requests
 from bs4 import BeautifulSoup
-from transformers import pipeline
+# from transformers import pipeline  # Removed to implement lazy loading
 from cachetools import TTLCache
 import uvicorn
 
@@ -149,6 +149,7 @@ def initialize_sentiment_pipeline():
     if sentiment_pipeline is None:
         logger.info("Loading sentiment analysis model...")
         try:
+            from transformers import pipeline  # Import here for lazy loading
             sentiment_pipeline = pipeline(
                 "sentiment-analysis",
                 model="distilbert-base-uncased-finetuned-sst-2-english",
@@ -798,7 +799,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "app:app",
         host="0.0.0.0",
-        port=8001,
+        port=8000,
         reload=True,
         log_level="info"
     )

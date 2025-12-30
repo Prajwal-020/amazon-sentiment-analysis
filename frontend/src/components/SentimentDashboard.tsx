@@ -47,7 +47,7 @@ export default function SentimentDashboard() {
   const fetchData = async () => {
     try {
       setError(null);
-      const response = await fetch('http://localhost:8001/top-mobiles');
+      const response = await fetch('http://localhost:8000/top-mobiles');
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -69,7 +69,7 @@ export default function SentimentDashboard() {
     setRefreshing(true);
     try {
       // First trigger refresh on backend
-      await fetch('http://localhost:8001/refresh', { method: 'POST' });
+      await fetch('http://localhost:8000/refresh', { method: 'POST' });
       // Then fetch new data
       await fetchData();
     } catch (err) {
