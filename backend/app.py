@@ -643,7 +643,7 @@ async def process_smartphones_data() -> List[SmartphoneData]:
     # Sort by composite score (descending)
     processed_data.sort(key=lambda x: x.composite_score, reverse=True)
 
-    return processed_data[:5]  # Return top 5
+    return processed_data[:10]  # Return top 10
 
 @app.on_event("startup")
 async def startup_event():

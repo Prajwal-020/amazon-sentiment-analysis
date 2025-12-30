@@ -129,7 +129,7 @@ export default function SentimentDashboard() {
       ];
 
       // Add positive reviews
-      for (let i = 0; i < Math.min(positiveCount, 8); i++) {
+      for (let i = 0; i < Math.min(positiveCount, 12); i++) {
         mockReviews.push({
           text: positiveTemplates[i % positiveTemplates.length],
           sentiment: 'positive',
@@ -138,7 +138,7 @@ export default function SentimentDashboard() {
       }
 
       // Add negative reviews
-      for (let i = 0; i < Math.min(negativeCount, 5); i++) {
+      for (let i = 0; i < Math.min(negativeCount, 8); i++) {
         mockReviews.push({
           text: negativeTemplates[i % negativeTemplates.length],
           sentiment: 'negative',
@@ -155,8 +155,8 @@ export default function SentimentDashboard() {
         });
       }
 
-      // Shuffle and limit to 15 reviews
-      const shuffledReviews = mockReviews.sort(() => Math.random() - 0.5).slice(0, 15);
+      // Shuffle and limit to 20 reviews
+      const shuffledReviews = mockReviews.sort(() => Math.random() - 0.5).slice(0, 20);
       setReviews(shuffledReviews);
 
     } catch (err) {
