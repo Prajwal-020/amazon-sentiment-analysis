@@ -9,9 +9,9 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { RefreshCw, Smartphone, TrendingUp, Star, MessageCircle, BarChart3, Activity, Eye, ThumbsUp, ThumbsDown } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, Tooltip as RechartsTooltip, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Tooltip as RechartsTooltip, Legend } from 'recharts';
 
 interface SmartphoneData {
   name: string;
@@ -32,6 +32,8 @@ interface ReviewData {
   score: number;
 }
 
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
 export default function SentimentDashboard() {
   const [data, setData] = useState<SmartphoneData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,7 @@ export default function SentimentDashboard() {
   const fetchData = async () => {
     try {
       setError(null);
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/top-mobiles`);
+      const response = await fetch('http://localhost:8001/top-mobiles');
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -67,7 +69,7 @@ export default function SentimentDashboard() {
     setRefreshing(true);
     try {
       // First trigger refresh on backend
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/refresh`, { method: 'POST' });
+      await fetch('http://localhost:8001/refresh', { method: 'POST' });
       // Then fetch new data
       await fetchData();
     } catch (err) {
@@ -192,9 +194,14 @@ export default function SentimentDashboard() {
     fullName: item.name
   }));
 
-  // Removed unused pieData
+  const pieData = data.map((item, index) => ({
+    name: item.name.split(' ').slice(0, 2).join(' '),
+    value: Math.round(item.composite_score * 100),
+    color: COLORS[index % COLORS.length],
+    fullName: item.name
+  }));
 
-  const sentimentComparisonData = data.map(item => ({
+  const sentimentComparisonData = data.map((item, index) => ({
     name: item.name.split(' ').slice(0, 2).join(' '),
     positive: Math.round(item.positive_ratio * 100),
     negative: Math.round((1 - item.positive_ratio) * 30), // Assuming 30% of non-positive are negative
@@ -260,7 +267,7 @@ export default function SentimentDashboard() {
               Sentiment-Ranked Smartphones
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Real-time sentiment analysis of Amazon India&apos;s bestseller smartphones
+              Real-time sentiment analysis of Amazon India's bestseller smartphones
             </p>
             {lastUpdated && (
               <p className="text-sm text-gray-500 mt-1">

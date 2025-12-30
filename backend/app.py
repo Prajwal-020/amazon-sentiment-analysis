@@ -21,7 +21,6 @@ from bs4 import BeautifulSoup
 from transformers import pipeline
 from cachetools import TTLCache
 import uvicorn
-import torch
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -37,99 +36,14 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://amazon-sentiment-frontend.onrender.com",
-        "https://amazon-sentiment-api.onrender.com"
-    ],
+    allow_origins=["*"],  # In production, specify exact origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Global variables and constants
-MODEL_CACHE_DIR = Path("/opt/render/model_cache")
-MODEL_NAME = "prajjwal1/bert-tiny"  # Tiny 4.4M parameter model
-MAX_MEMORY_PERCENT = 75
-
-import psutil
-def check_memory_usage():
-    """Monitor memory usage and log warnings if too high."""
-    process = psutil.Process(os.getpid())
-    memory_percent = process.memory_percent()
-    logger.info(f"Current memory usage: {memory_percent:.1f}%")
-    if memory_percent > MAX_MEMORY_PERCENT:
-        logger.warning(f"High memory usage detected: {memory_percent:.1f}%")
-    return memory_percent
-
-def cleanup_memory():
-    """Attempt to free up memory."""
-    import gc
-    gc.collect()
-    import torch
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-    logger.info("Memory cleanup performed")
-MODEL_NAME = "distilbert-base-uncased-finetuned-sst-2-english"
+# Global variables
 sentiment_pipeline = None
-
-def ensure_model_cache_dir():
-    """Ensure the model cache directory exists."""
-    if not MODEL_CACHE_DIR.exists():
-        MODEL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    os.environ['TRANSFORMERS_CACHE'] = str(MODEL_CACHE_DIR)
-    logger.info(f"Using model cache directory: {MODEL_CACHE_DIR}")
-
-@app.on_event("startup")
-async def startup_event():
-    global sentiment_pipeline
-    ensure_model_cache_dir()
-    cleanup_memory()
-    
-    logger.info("Loading sentiment analysis model...")
-    try:
-        from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
-        import torch
-
-        # Configure PyTorch for CPU usage
-        device = torch.device("cpu")
-        torch.set_num_threads(4)  # Limit CPU threads
-        
-        # Load model components separately to better manage memory
-        tokenizer = AutoTokenizer.from_pretrained(
-            MODEL_NAME,
-            cache_dir=MODEL_CACHE_DIR,
-            local_files_only=False
-        )
-        
-        model = AutoModelForSequenceClassification.from_pretrained(
-            MODEL_NAME,
-            cache_dir=MODEL_CACHE_DIR,
-            local_files_only=False,
-            torch_dtype=torch.float32
-        )
-        
-        # Free up memory
-        import gc
-        gc.collect()
-        torch.cuda.empty_cache() if torch.cuda.is_available() else None
-        
-        model = model.to(device)  # Ensure model is on CPU
-        
-        # Create pipeline with memory-optimized settings
-        sentiment_pipeline = pipeline(
-            "sentiment-analysis",
-            model=model,
-            tokenizer=tokenizer,
-            device=device
-        )
-        
-        cleanup_memory()
-        check_memory_usage()
-        logger.info("Model loaded successfully!")
-    except Exception as e:
-        logger.error(f"Error loading model: {str(e)}")
-        raise
 cache = TTLCache(maxsize=100, ttl=3600)  # 1 hour TTL
 
 # Data storage configuration
@@ -734,8 +648,7 @@ async def process_smartphones_data() -> List[SmartphoneData]:
 @app.on_event("startup")
 async def startup_event():
     """Initialize the application"""
-    ensure_model_cache_dir()  # Only setup cache dir, don't load model yet
-    logger.info("Application started successfully")
+    initialize_sentiment_pipeline()
 
 @app.get("/")
 async def root():
@@ -882,6 +795,10 @@ async def storage_status():
     return status
 
 if __name__ == "__main__":
-    # For local development only
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)  # Use local host for development
+    uvicorn.run(
+        "app:app",
+        host="0.0.0.0",
+        port=8001,
+        reload=True,
+        log_level="info"
+    )
