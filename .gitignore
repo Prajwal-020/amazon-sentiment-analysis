@@ -207,3 +207,14 @@ data/
 # data/*.json
 # data/*.csv
 # data/*.xlsx
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Next.js
+.next/
+out/
